@@ -8,7 +8,7 @@ export async function GET() {
     const sandbox = await createE2bSandbox();
 
     // Test 2: Run simple code
-    const result = await sandbox.runCode(`
+    const execution = await sandbox.runCode(`
 import sys
 print(f"Python {sys.version}")
 print("✅ E2B sandbox is working!")
@@ -19,8 +19,9 @@ print("✅ E2B sandbox is working!")
 
     return NextResponse.json({
       success: true,
-      sandboxId: sandbox.id,
-      pythonOutput: result.text,
+      sandboxId: sandbox.sandboxId,
+      pythonOutput: execution.logs.stdout.join('\n'),
+      error: execution.error,
       message: 'Feature 1 complete! ✅',
     });
 

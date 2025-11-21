@@ -1,46 +1,20 @@
-// src/lib/sandbox.ts
-import Sandbox from 'e2b';
+// sandbox.ts - E2B Sandbox Test
+import { config } from 'dotenv'
+import { Sandbox } from '@e2b/code-interpreter'
 
-export async function createE2bSandbox() {
-  // Step 1: Define MCP configuration
-  const mcpConfig = {
-    exa: {
-      apiKey: process.env.EXA_API_KEY!,
-    },
-    browserbase: {
-      apiKey: process.env.BROWSERBASE_API_KEY!,
-      geminiApiKey: process.env.GEMINI_API_KEY!,
-      projectId: process.env.BROWSERBASE_PROJECT_ID!,
-    }
-  };
+// Load environment variables from .env.local
+config({ path: '.env.local' })
 
-  try {
-    console.log('Creating E2B sandbox with Docker MCPs...');
+console.log('E2B_API_KEY:', process.env.E2B_API_KEY ? 'Found ✓' : 'Missing ✗')
 
-    // Step 2: Actually CREATE the sandbox (this was missing!)
-    const sandbox = await Sandbox.create({
-      mcp: mcpConfig,
-      timeout: 300000, // 5 minutes timeout
-    });
+const sbx = await Sandbox.create() // By default the sandbox is alive for 5 minutes
+console.log('✅ Sandbox created:', sbx.sandboxId)
 
-    console.log('Sandbox created successfully:', sandbox.id);
+const execution = await sbx.runCode('print("hello world")') // Execute Python inside the sandbox
+console.log('✅ Execution output:', execution.logs.stdout.join(''))
 
-    // Step 3: Return the sandbox so other functions can use it
-    return sandbox;
+const files = await sbx.files.list('/')
+console.log('✅ Files found:', files.length, 'items')
 
-  } catch (error: any) {
-    console.error('Failed to create sandbox:', error.message);
-    throw new Error(`Sandbox creation failed: ${error.message}`);
-  }
-}
-
-// Bonus: Helper function to destroy sandboxes safely
-export async function destroySandbox(sandbox: Sandbox) {
-  try {
-    await sandbox.kill();
-    console.log('Sandbox destroyed successfully');
-  } catch (error: any) {
-    console.error('Error destroying sandbox:', error.message);
-  }
-}
-
+await sbx.kill() // Clean up the sandbox
+console.log('✅ Sandbox killed successfully')
