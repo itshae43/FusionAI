@@ -2,8 +2,11 @@ export interface FileItem {
   id: string;
   name: string;
   type: 'csv' | 'pdf' | 'svg';
-  addedBy: string;
-  date: string;
+  folderId: string;
+  filePath: string; // Supabase storage path
+  size: number; // File size in bytes
+  uploadedAt: string; // ISO timestamp
+  createdAt?: string; // Database timestamp
 }
 
 export interface FolderStructure {

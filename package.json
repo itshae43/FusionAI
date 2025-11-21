@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@e2b/code-interpreter": "^2.2.0",
+    "@supabase/supabase-js": "^2.84.0",
     "ai": "^5.0.98",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
