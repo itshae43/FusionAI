@@ -1,20 +1,32 @@
-// sandbox.ts - E2B Sandbox Test
-import { config } from 'dotenv'
-import { Sandbox } from '@e2b/code-interpreter'
+// src/lib/e2b/sandbox.ts
+import { Sandbox } from '@e2b/code-interpreter';
 
-// Load environment variables from .env.local
-config({ path: '.env.local' })
+export async function createE2bSandbox() {
+  try {
+    console.log('🚀 Creating E2B sandbox with MCP configuration...');
 
-console.log('E2B_API_KEY:', process.env.E2B_API_KEY ? 'Found ✓' : 'Missing ✗')
+    // Create the sandbox with 5 minutes timeout
+    const sandbox = await Sandbox.create({
+      timeoutMs: 300000, // 5 minutes timeout
+    });
 
-const sbx = await Sandbox.create() // By default the sandbox is alive for 5 minutes
-console.log('✅ Sandbox created:', sbx.sandboxId)
+    console.log('✅ Sandbox created successfully:', sandbox.sandboxId);
 
-const execution = await sbx.runCode('print("hello world")') // Execute Python inside the sandbox
-console.log('✅ Execution output:', execution.logs.stdout.join(''))
+    // Return the sandbox so other functions can use it
+    return sandbox;
 
-const files = await sbx.files.list('/')
-console.log('✅ Files found:', files.length, 'items')
+  } catch (error: any) {
+    console.error('❌ Failed to create sandbox:', error.message);
+    throw new Error(`Sandbox creation failed: ${error.message}`);
+  }
+}
 
-await sbx.kill() // Clean up the sandbox
-console.log('✅ Sandbox killed successfully')
+// Helper function to destroy sandboxes safely
+export async function destroySandbox(sandbox: Sandbox) {
+  try {
+    await sandbox.kill();
+    console.log('🗑️ Sandbox destroyed successfully');
+  } catch (error: any) {
+    console.error('⚠️ Error destroying sandbox:', error.message);
+  }
+}
