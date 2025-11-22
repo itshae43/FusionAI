@@ -17,11 +17,21 @@ export interface FolderStructure {
   children?: FolderStructure[];
 }
 
+import type { AnalysisResult } from './analysis';
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'system';
   text: string;
   attachments?: string[];
+  analysis?: ChatAnalysisMeta;
+}
+
+export interface ChatAnalysisMeta {
+  status: 'running' | 'completed' | 'error';
+  result?: AnalysisResult;
+  code?: string;
+  files?: Array<{ id: string; name: string }>;
 }
 
 export interface DatasetFolder {

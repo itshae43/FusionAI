@@ -1,16 +1,24 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { FileSpreadsheet, Loader2 } from 'lucide-react';
 import { ChatMessage } from '@/types';
 import ChatInput from '@/components/chat/ChatInput';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { AnalysisOutput } from '@/components/analysis/AnalysisOutput';
+import { supabase } from '@/lib/supabase';
+
+type AnalysisApiFile = {
+  id: string;
+  name: string;
+};
 
 export default function ChatPage() {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
+  const [availableFiles, setAvailableFiles] = useState<Array<{ id: string; name: string }>>([]);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages arrive
@@ -18,18 +26,130 @@ export default function ChatPage() {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatHistory, streamingMessage]);
 
-  const handleSendMessage = async (text: string, attachment: string | null, useResearch: boolean) => {
+  useEffect(() => {
+    const fetchFiles = async () => {
+      const { data, error } = await supabase
+        .from('files')
+        .select('id, name')
+        .order('uploaded_at', { ascending: false });
+
+      if (error) {
+        console.error('Failed to load files for chat:', error.message);
+        return;
+      }
+
+      setAvailableFiles((data ?? []).map((file) => ({ id: file.id, name: file.name })));
+    };
+
+    fetchFiles();
+  }, []);
+
+  const fileNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    availableFiles.forEach((file) => map.set(file.id, file.name));
+    return map;
+  }, [availableFiles]);
+
+  const handleSendMessage = async (
+    text: string,
+    fileIds: string[],
+    useResearch: boolean,
+    useAnalysis: boolean,
+  ) => {
     // Add user message to chat
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
       text: text,
-      attachments: attachment ? [attachment] : []
+      attachments: useAnalysis ? fileIds.map((id) => fileNameMap.get(id) || 'Dataset') : [],
     };
-    setChatHistory(prev => [...prev, userMsg]);
-    
     setIsLoading(true);
     setStreamingMessage('');
+
+    if (useAnalysis) {
+      const analysisMessageId = `${Date.now()}-analysis`;
+
+      setChatHistory(prev => [
+        ...prev,
+        userMsg,
+        {
+          id: analysisMessageId,
+          role: 'system',
+          text: 'Running data analysis...',
+          analysis: {
+            status: 'running',
+            result: {},
+          },
+        },
+      ]);
+
+      try {
+        const response = await fetch('/api/chat/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            question: text,
+            fileIds,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Analysis failed');
+        }
+
+        setChatHistory(prev => prev.map(msg => {
+          if (msg.id !== analysisMessageId) return msg;
+
+          const normalizedStdout = typeof data.stdout === 'string' ? data.stdout.trim() : '';
+          const filesUsed: AnalysisApiFile[] = Array.isArray(data.files)
+            ? data.files.filter((file: Partial<AnalysisApiFile>): file is AnalysisApiFile =>
+                !!file && typeof file.id === 'string' && typeof file.name === 'string')
+            : [];
+
+          return {
+            id: analysisMessageId,
+            role: 'system',
+            text: data.status === 'completed' ? 'Data analysis finished.' : 'Data analysis output',
+            analysis: {
+              status: data.status || (data.error ? 'error' : 'completed'),
+              result: {
+                text: normalizedStdout || (data.error ? undefined : 'Analysis completed successfully.'),
+                error: data.error,
+              },
+              code: data.code,
+              files: filesUsed,
+            },
+          };
+        }));
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error during analysis';
+        setChatHistory(prev => prev.map(msg => {
+          if (msg.id !== analysisMessageId) return msg;
+          return {
+            ...msg,
+            text: 'Analysis failed',
+            analysis: {
+              status: 'error',
+              result: {
+                error: {
+                  name: 'AnalysisError',
+                  message,
+                  traceback: '',
+                },
+              },
+            },
+          };
+        }));
+      } finally {
+        setIsLoading(false);
+      }
+
+      return;
+    }
+
+    setChatHistory(prev => [...prev, userMsg]);
 
     try {
       // Call the chat API
@@ -78,14 +198,15 @@ export default function ChatPage() {
       setChatHistory(prev => [...prev, assistantMsg]);
       setStreamingMessage('');
 
-    } catch (error: any) {
-      console.error('Chat error:', error);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Chat error:', message);
       
       // Add error message
       const errorMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'system',
-        text: `Sorry, I encountered an error: ${error.message}. Please try again.`,
+        text: `Sorry, I encountered an error: ${message}. Please try again.`,
       };
       setChatHistory(prev => [...prev, errorMsg]);
       
@@ -114,7 +235,28 @@ export default function ChatPage() {
                   max-w-lg p-4 rounded-2xl
                   ${msg.role === 'user' ? 'bg-gray-100 text-gray-900 rounded-tr-sm' : 'bg-white border border-gray-200 shadow-sm rounded-tl-sm'}
                 `}>
-                  {msg.role === 'system' ? (
+                  {msg.analysis ? (
+                    <div className="space-y-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                        Data Analysis
+                      </p>
+                      <p className="text-sm text-gray-700">{msg.text}</p>
+                      <AnalysisOutput
+                        result={msg.analysis.result || {}}
+                        status={msg.analysis.status}
+                      />
+                      {msg.analysis.code && (
+                        <details className="text-sm text-gray-500">
+                          <summary className="cursor-pointer text-gray-600">
+                            View generated Python
+                          </summary>
+                          <pre className="mt-2 text-xs bg-gray-900 text-gray-100 rounded-lg p-3 overflow-auto">
+                            {msg.analysis.code}
+                          </pre>
+                        </details>
+                      )}
+                    </div>
+                  ) : msg.role === 'system' ? (
                     <div className="prose prose-sm max-w-none">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {msg.text}
@@ -171,7 +313,11 @@ export default function ChatPage() {
       </div>
 
       {/* Input Area */}
-      <ChatInput onSend={handleSendMessage} isLoading={isLoading} />
+      <ChatInput 
+        onSend={handleSendMessage} 
+        isLoading={isLoading} 
+        files={availableFiles}
+      />
     </div>
   );
 }
