@@ -1,21 +1,26 @@
 'use client';
 
-import { FileText, UploadCloud, FolderOpen } from 'lucide-react';
+import { FileText, UploadCloud, FolderOpen, Trash2 } from 'lucide-react';
 import { FileItem, DatasetFolder } from '@/types';
+import { useState } from 'react';
 
 interface FileTableProps {
   files: FileItem[];
   folders: DatasetFolder[];
   onUploadClick: () => void;
   onFolderChange: (fileId: string, newFolderId: string) => void;
+  onDeleteFile?: (fileId: string) => void;
 }
 
 export default function FileTable({ 
   files, 
   folders, 
   onUploadClick,
-  onFolderChange 
+  onFolderChange,
+  onDeleteFile
 }: FileTableProps) {
+  const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
+
   const formatDate = (isoString: string) => {
     const date = new Date(isoString);
     return date.toLocaleString('en-US', {
@@ -37,6 +42,35 @@ export default function FileTable({
     return folders.find(f => f.id === folderId);
   };
 
+  const handleDeleteClick = async (fileId: string, fileName: string) => {
+    if (!confirm(`Are you sure you want to delete "${fileName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    setDeletingFileId(fileId);
+
+    try {
+      const response = await fetch(`/api/delete-file?fileId=${fileId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete file');
+      }
+
+      // Call parent handler to update UI
+      if (onDeleteFile) {
+        onDeleteFile(fileId);
+      }
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      alert(`Failed to delete file: ${error.message}`);
+    } finally {
+      setDeletingFileId(null);
+    }
+  };
+
   return (
     <div className="bg-gray-50/50 rounded-2xl border border-gray-100 overflow-hidden">
       <table className="w-full">
@@ -46,12 +80,13 @@ export default function FileTable({
             <th className="px-6 py-4 font-medium">Uploaded</th>
             <th className="px-6 py-4 font-medium">Size</th>
             <th className="px-6 py-4 font-medium">Folder</th>
+            <th className="px-6 py-4 font-medium">Actions</th>
           </tr>
         </thead>
         <tbody>
           {files.length === 0 ? (
             <tr>
-              <td colSpan={4} className="px-6 py-12 text-center text-gray-400">
+              <td colSpan={5} className="px-6 py-12 text-center text-gray-400">
                 No files uploaded yet
               </td>
             </tr>
@@ -103,6 +138,23 @@ export default function FileTable({
                         ))}
                       </select>
                     </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => handleDeleteClick(file.id, file.name)}
+                      disabled={deletingFileId === file.id}
+                      className="p-2 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed group/delete"
+                      title="Delete file"
+                    >
+                      <Trash2 
+                        size={16} 
+                        className={`${
+                          deletingFileId === file.id 
+                            ? 'text-gray-400' 
+                            : 'text-gray-500 group-hover/delete:text-red-600'
+                        } transition-colors`}
+                      />
+                    </button>
                   </td>
                 </tr>
               );

@@ -12,6 +12,14 @@ const groq = new Groq({
 
 export async function POST(req: NextRequest) {
   try {
+    // Validate required environment variables
+    if (!process.env.GROQ_API_KEY) {
+      return NextResponse.json(
+        { error: 'GROQ_API_KEY is not configured' },
+        { status: 500 }
+      );
+    }
+
     const { messages, useResearch } = await req.json();
 
     // Get the last user message

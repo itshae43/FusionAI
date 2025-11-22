@@ -11,6 +11,11 @@ export async function conductExternalResearch(
   
   console.log(`🔍 Starting research: "${query.query}"`);
 
+  // Validate API key
+  if (!process.env.EXA_API_KEY) {
+    throw new Error('EXA_API_KEY environment variable is not set');
+  }
+
   try {
     // Build the Exa MCP command
     const numResults = query.numResults || 10;

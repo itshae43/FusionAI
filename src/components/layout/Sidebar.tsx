@@ -295,14 +295,16 @@ export default function Sidebar({ onChatSelect, currentChatId, onNewChat }: Side
                         draggable
                         onDragStart={() => handleDragStart(chat.id)}
                         onClick={() => onChatSelect?.(chat.id)}
-                        className={`group flex items-center gap-2 px-3 py-2 ml-3 rounded-lg hover:bg-white transition cursor-pointer ${
-                          currentChatId === chat.id ? 'bg-white border border-gray-300' : ''
+                        className={`group flex items-center gap-2 px-3 py-2.5 ml-3 rounded-lg transition cursor-pointer border ${
+                          currentChatId === chat.id 
+                            ? 'bg-white border-blue-300 shadow-sm' 
+                            : 'bg-[#FDFDFD] border-gray-200 hover:bg-white hover:border-gray-300 hover:shadow-sm'
                         }`}
                       >
                         <GripVertical size={12} className="text-gray-400 opacity-0 group-hover:opacity-100 transition shrink-0" />
-                        <MessageSquare size={14} className="text-gray-500 shrink-0" />
+                        <MessageSquare size={14} className={currentChatId === chat.id ? 'text-blue-500' : 'text-gray-500'} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-gray-700 truncate font-medium">
+                          <p className={`text-xs truncate font-medium ${currentChatId === chat.id ? 'text-gray-900' : 'text-gray-700'}`}>
                             {chat.title}
                           </p>
                           <p className="text-[10px] text-gray-400">
@@ -366,14 +368,16 @@ export default function Sidebar({ onChatSelect, currentChatId, onNewChat }: Side
                 draggable
                 onDragStart={() => handleDragStart(chat.id)}
                 onClick={() => onChatSelect?.(chat.id)}
-                className={`group flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white transition cursor-pointer ${
-                  currentChatId === chat.id ? 'bg-white border border-gray-300' : ''
+                className={`group flex items-center gap-2 px-3 py-2.5 rounded-lg transition cursor-pointer border ${
+                  currentChatId === chat.id 
+                    ? 'bg-white border-blue-300 shadow-sm' 
+                    : 'bg-[#FDFDFD] border-gray-200 hover:bg-white hover:border-gray-300 hover:shadow-sm'
                 }`}
               >
                 <GripVertical size={12} className="text-gray-400 opacity-0 group-hover:opacity-100 transition shrink-0" />
-                <MessageSquare size={14} className="text-gray-500 shrink-0" />
+                <MessageSquare size={14} className={currentChatId === chat.id ? 'text-blue-500' : 'text-gray-500'} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-gray-700 truncate font-medium">
+                  <p className={`text-xs truncate font-medium ${currentChatId === chat.id ? 'text-gray-900' : 'text-gray-700'}`}>
                     {chat.title}
                   </p>
                   <p className="text-[10px] text-gray-400">

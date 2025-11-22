@@ -2,6 +2,7 @@
 
 import { Loader2 } from 'lucide-react';
 import type { AnalysisResult } from '@/types/analysis';
+import { Chart } from './Chart';
 
 interface AnalysisOutputProps {
   result: AnalysisResult;
@@ -35,17 +36,35 @@ export function AnalysisOutput({ result, status }: AnalysisOutputProps) {
     );
   }
 
-  if (result.text) {
-    return (
-      <div className="border border-gray-200 bg-gray-50 rounded-lg p-3 text-sm space-y-2">
-        <div className="text-xs uppercase tracking-wide text-gray-500 font-semibold">
-          Terminal · {status === 'completed' ? 'Analysis completed' : 'Output'}
+  return (
+    <div className="space-y-4">
+      {/* Text Output */}
+      {result.text && (
+        <div className="border border-gray-200 bg-gray-50 rounded-lg p-3 text-sm space-y-2">
+          <div className="text-xs uppercase tracking-wide text-gray-500 font-semibold">
+            Terminal · {status === 'completed' ? 'Analysis completed' : 'Output'}
+          </div>
+          <pre className="whitespace-pre-wrap">{result.text}</pre>
         </div>
-        <pre className="whitespace-pre-wrap">{result.text}</pre>
-      </div>
-    );
-  }
+      )}
 
-  // Nothing to show yet (no text, no error, no chart)
-  return null;
+      {/* Chart Visualization */}
+      {result.chart && (
+        <div className="mt-4">
+          <Chart chart={result.chart} />
+        </div>
+      )}
+
+      {/* PNG Image (if available) */}
+      {result.png && (
+        <div className="mt-4 border border-gray-200 bg-white rounded-lg p-4">
+          <img 
+            src={`data:image/png;base64,${result.png}`} 
+            alt="Analysis Chart"
+            className="max-w-full h-auto mx-auto"
+          />
+        </div>
+      )}
+    </div>
+  );
 }

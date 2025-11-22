@@ -103,23 +103,12 @@ export default function DatasetsPage() {
   };
 
   const handleDeleteFile = async (fileId: string) => {
-    try {
-      // Delete from Supabase
-      const { error } = await supabase
-        .from('files')
-        .delete()
-        .eq('id', fileId);
-
-      if (error) throw error;
-
-      // Update local state
-      setFiles(prevFiles => prevFiles.filter(file => file.id !== fileId));
-      
-      // Refresh to update folder counts
-      fetchFiles();
-    } catch (error: any) {
-      console.error('Error deleting file:', error.message);
-    }
+    // Update local state (API call is already handled in FileTable)
+    setFiles(prevFiles => {
+      const updatedFiles = prevFiles.filter(file => file.id !== fileId);
+      updateFolderCounts(updatedFiles);
+      return updatedFiles;
+    });
   };
 
   const getFilesInFolder = (folderId: string): FileItem[] => {
@@ -185,6 +174,7 @@ export default function DatasetsPage() {
             folders={folders}
             onUploadClick={() => setIsUploadModalOpen(true)}
             onFolderChange={handleFolderChange}
+            onDeleteFile={handleDeleteFile}
           />
         )}
       </div>

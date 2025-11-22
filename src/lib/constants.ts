@@ -24,12 +24,8 @@ export const INITIAL_FOLDERS: FolderStructure[] = [
   { id: '6', name: 'Team Interviews', count: 10, isOpen: false }
 ];
 
-export const INITIAL_FILES: FileItem[] = [
-  { id: '1', name: 'Onboarding-Guide.svg', type: 'svg', addedBy: 'Kevin@gmail.com', date: '2 days ago' },
-  { id: '2', name: 'Financial-Report-Q1.csv', type: 'csv', addedBy: 'Kevin@gmail.com', date: '3 days ago' },
-  { id: '3', name: 'User-Research.csv', type: 'csv', addedBy: 'Kevin@gmail.com', date: '4 days ago' },
-  { id: '4', name: 'System-Logs.csv', type: 'csv', addedBy: 'Kevin@gmail.com', date: '1 week ago' },
-];
+// Initial files removed - all files now loaded from Supabase database
+export const INITIAL_FILES: FileItem[] = [];
 
 export const DATASET_FOLDERS: DatasetFolder[] = [
   { id: 'd1', name: 'Task Automation', count: 3, color: 'bg-purple-100 text-purple-800', iconColor: 'bg-purple-300' },

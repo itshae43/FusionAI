@@ -1,0 +1,22 @@
+# Test files
+test-research.ts
+test-sandbox.ts
+
+# Documentation (keep deployment guides)
+# README.md is needed for project info
+
+# Local environment
+.env
+.env.local
+
+# Development files
+*.log
+.DS_Store
+
+# Git
+.git
+.github/workflows
+
+# IDE
+.vscode
+.idea
