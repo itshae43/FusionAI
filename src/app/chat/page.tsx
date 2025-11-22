@@ -228,15 +228,15 @@ export default function ChatPage() {
              <p className="text-sm text-gray-400">Click the search icon to search the web for answers</p>
           </div>
         ) : (
-          <div className="space-y-6 max-w-3xl mx-auto">
+          <div className="space-y-6 w-full">
             {chatHistory.map(msg => (
-              <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} w-full`}>
                 <div className={`
-                  max-w-lg p-4 rounded-2xl
-                  ${msg.role === 'user' ? 'bg-gray-100 text-gray-900 rounded-tr-sm' : 'bg-white border border-gray-200 shadow-sm rounded-tl-sm'}
+                  w-full max-w-3xl px-6 py-4
+                  ${msg.role === 'user' ? '' : ''}
                 `}>
                   {msg.analysis ? (
-                    <div className="space-y-3">
+                    <div className="space-y-3 max-w-4xl">
                       <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                         Data Analysis
                       </p>
@@ -247,7 +247,7 @@ export default function ChatPage() {
                       />
                       {msg.analysis.code && (
                         <details className="text-sm text-gray-500">
-                          <summary className="cursor-pointer text-gray-600">
+                          <summary className="cursor-pointer text-gray-600 hover:text-gray-900">
                             View generated Python
                           </summary>
                           <pre className="mt-2 text-xs bg-gray-900 text-gray-100 rounded-lg p-3 overflow-auto">
@@ -257,19 +257,21 @@ export default function ChatPage() {
                       )}
                     </div>
                   ) : msg.role === 'system' ? (
-                    <div className="prose prose-sm max-w-none">
+                    <div className="prose prose-base max-w-4xl text-gray-800">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {msg.text}
                       </ReactMarkdown>
                     </div>
                   ) : (
-                    <p>{msg.text}</p>
+                    <div className="bg-gray-100 rounded-2xl px-5 py-3 inline-block max-w-2xl ml-auto">
+                      <p className="text-gray-900">{msg.text}</p>
+                    </div>
                   )}
                   {msg.attachments && msg.attachments.length > 0 && (
-                     <div className="mt-2 flex gap-2">
+                     <div className="mt-3 flex gap-2 flex-wrap">
                         {msg.attachments.map((att, i) => (
-                           <span key={i} className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded flex items-center gap-1">
-                              <FileSpreadsheet size={12}/> {att}
+                           <span key={i} className="text-xs bg-green-100 text-green-800 px-3 py-1.5 rounded-lg flex items-center gap-1.5 font-medium">
+                              <FileSpreadsheet size={13}/> {att}
                            </span>
                         ))}
                      </div>
@@ -280,14 +282,14 @@ export default function ChatPage() {
             
             {/* Streaming message */}
             {streamingMessage && (
-              <div className="flex justify-start">
-                <div className="max-w-lg p-4 rounded-2xl bg-white border border-gray-200 shadow-sm rounded-tl-sm">
-                  <div className="prose prose-sm max-w-none">
+              <div className="flex justify-start w-full">
+                <div className="w-full max-w-3xl px-6 py-4">
+                  <div className="prose prose-base max-w-4xl text-gray-800">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {streamingMessage}
                     </ReactMarkdown>
                   </div>
-                  <div className="mt-2 flex items-center gap-2 text-xs text-gray-400">
+                  <div className="mt-3 flex items-center gap-2 text-xs text-gray-400">
                     <Loader2 size={12} className="animate-spin" />
                     Typing...
                   </div>
@@ -297,8 +299,8 @@ export default function ChatPage() {
             
             {/* Loading indicator */}
             {isLoading && !streamingMessage && (
-              <div className="flex justify-start">
-                <div className="max-w-lg p-4 rounded-2xl bg-white border border-gray-200 shadow-sm rounded-tl-sm">
+              <div className="flex justify-start w-full">
+                <div className="w-full max-w-3xl px-6 py-4">
                   <div className="flex items-center gap-2 text-gray-600">
                     <Loader2 size={16} className="animate-spin" />
                     <span>Thinking...</span>
