@@ -11,9 +11,12 @@ interface AnalysisOutputProps {
 export function AnalysisOutput({ result, status }: AnalysisOutputProps) {
   if (status === 'running') {
     return (
-      <div className="border border-dashed border-gray-300 bg-white rounded-lg p-3 text-sm flex items-center gap-2 text-gray-600">
-        <Loader2 className="w-4 h-4 animate-spin" />
-        Analyzing data in secure sandbox...
+      <div className="border border-dashed border-purple-300 bg-purple-50 rounded-lg p-4 text-sm flex items-center gap-3 text-purple-900">
+        <Loader2 className="w-5 h-5 animate-spin text-purple-600" />
+        <div>
+          <p className="font-semibold">Analyzing data in secure sandbox...</p>
+          <p className="text-xs text-purple-700 mt-1">This may take a few moments</p>
+        </div>
       </div>
     );
   }

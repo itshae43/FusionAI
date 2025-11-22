@@ -298,12 +298,12 @@ export default function ChatPage() {
             )}
             
             {/* Loading indicator */}
-            {isLoading && !streamingMessage && (
+            {isLoading && !streamingMessage && chatHistory[chatHistory.length - 1]?.role !== 'system' && (
               <div className="flex justify-start w-full">
                 <div className="w-full max-w-3xl px-6 py-4">
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Loader2 size={16} className="animate-spin" />
-                    <span>Thinking...</span>
+                  <div className="flex items-center gap-3 text-gray-700 bg-gray-50 rounded-xl px-4 py-3 border border-gray-200">
+                    <Loader2 size={18} className="animate-spin text-gray-500" />
+                    <span className="font-medium">Thinking...</span>
                   </div>
                 </div>
               </div>
