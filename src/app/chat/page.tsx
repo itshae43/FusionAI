@@ -257,7 +257,49 @@ export default function ChatPage() {
                     </div>
                   ) : msg.role === 'system' ? (
                     <div className="prose prose-base max-w-none text-gray-800">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          a: ({ node, ...props }) => (
+                            <a
+                              {...props}
+                              className="text-blue-600 hover:text-blue-800 underline font-medium"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            />
+                          ),
+                          h1: ({ node, ...props }) => (
+                            <h1 {...props} className="text-2xl font-bold text-gray-900 mt-6 mb-4" />
+                          ),
+                          h2: ({ node, ...props }) => (
+                            <h2 {...props} className="text-xl font-bold text-gray-900 mt-5 mb-3" />
+                          ),
+                          h3: ({ node, ...props }) => (
+                            <h3 {...props} className="text-lg font-semibold text-gray-900 mt-4 mb-2" />
+                          ),
+                          ul: ({ node, ...props }) => (
+                            <ul {...props} className="list-disc list-inside space-y-2 my-3" />
+                          ),
+                          ol: ({ node, ...props }) => (
+                            <ol {...props} className="list-decimal list-inside space-y-2 my-3" />
+                          ),
+                          li: ({ node, ...props }) => (
+                            <li {...props} className="text-gray-800 leading-relaxed" />
+                          ),
+                          p: ({ node, ...props }) => (
+                            <p {...props} className="text-gray-800 leading-relaxed my-3" />
+                          ),
+                          code: ({ node, inline, ...props }: any) => 
+                            inline ? (
+                              <code {...props} className="bg-gray-100 text-red-600 px-1.5 py-0.5 rounded text-sm font-mono" />
+                            ) : (
+                              <code {...props} className="block bg-gray-900 text-gray-100 p-3 rounded-lg overflow-x-auto text-sm font-mono" />
+                            ),
+                          blockquote: ({ node, ...props }) => (
+                            <blockquote {...props} className="border-l-4 border-gray-300 pl-4 italic text-gray-700 my-3" />
+                          ),
+                        }}
+                      >
                         {msg.text}
                       </ReactMarkdown>
                     </div>
@@ -284,7 +326,49 @@ export default function ChatPage() {
               <div className="flex justify-start w-full max-w-4xl px-8">
                 <div className="w-full">
                   <div className="prose prose-base max-w-none text-gray-800">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    <ReactMarkdown 
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        a: ({ node, ...props }) => (
+                          <a
+                            {...props}
+                            className="text-blue-600 hover:text-blue-800 underline font-medium"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          />
+                        ),
+                        h1: ({ node, ...props }) => (
+                          <h1 {...props} className="text-2xl font-bold text-gray-900 mt-6 mb-4" />
+                        ),
+                        h2: ({ node, ...props }) => (
+                          <h2 {...props} className="text-xl font-bold text-gray-900 mt-5 mb-3" />
+                        ),
+                        h3: ({ node, ...props }) => (
+                          <h3 {...props} className="text-lg font-semibold text-gray-900 mt-4 mb-2" />
+                        ),
+                        ul: ({ node, ...props }) => (
+                          <ul {...props} className="list-disc list-inside space-y-2 my-3" />
+                        ),
+                        ol: ({ node, ...props }) => (
+                          <ol {...props} className="list-decimal list-inside space-y-2 my-3" />
+                        ),
+                        li: ({ node, ...props }) => (
+                          <li {...props} className="text-gray-800 leading-relaxed" />
+                        ),
+                        p: ({ node, ...props }) => (
+                          <p {...props} className="text-gray-800 leading-relaxed my-3" />
+                        ),
+                        code: ({ node, inline, ...props }: any) => 
+                          inline ? (
+                            <code {...props} className="bg-gray-100 text-red-600 px-1.5 py-0.5 rounded text-sm font-mono" />
+                          ) : (
+                            <code {...props} className="block bg-gray-900 text-gray-100 p-3 rounded-lg overflow-x-auto text-sm font-mono" />
+                          ),
+                        blockquote: ({ node, ...props }) => (
+                          <blockquote {...props} className="border-l-4 border-gray-300 pl-4 italic text-gray-700 my-3" />
+                        ),
+                      }}
+                    >
                       {streamingMessage}
                     </ReactMarkdown>
                   </div>
