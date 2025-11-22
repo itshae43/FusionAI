@@ -7,9 +7,10 @@ import { DatasetFolder } from '@/types';
 interface FolderCardProps {
   folder: DatasetFolder;
   onRename: (folderId: string, newName: string) => void;
+  onClick?: () => void;
 }
 
-export default function FolderCard({ folder, onRename }: FolderCardProps) {
+export default function FolderCard({ folder, onRename, onClick }: FolderCardProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState(folder.name);
@@ -55,6 +56,7 @@ export default function FolderCard({ folder, onRename }: FolderCardProps) {
 
   return (
     <div
+      onClick={() => !isRenaming && onClick?.()}
       className={`
         ${folder.color} 
         p-6 rounded-3xl relative cursor-pointer hover:scale-[1.02] transition-transform duration-200 h-48 flex flex-col justify-between
@@ -108,9 +110,8 @@ export default function FolderCard({ folder, onRename }: FolderCardProps) {
         )}
       </div>
 
-      {/* Folder Icon and Count */}
-      <div className="flex items-end justify-between">
-        <div className={`w-10 h-10 rounded-lg ${folder.iconColor} shadow-sm`}></div>
+      {/* Item Count (bottom right only) */}
+      <div className="flex items-end justify-end">
         <span className="text-sm font-medium opacity-60">{folder.count} Items</span>
       </div>
     </div>

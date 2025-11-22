@@ -6,13 +6,42 @@ import { supabase } from '@/lib/supabase';
 import FolderCard from '@/components/datasets/FolderCard';
 import FileTable from '@/components/datasets/FileTable';
 import UploadFileModal from '@/components/datasets/UploadFileModal';
+import FolderFilesModal from '@/components/datasets/FolderFilesModal';
 import { FileItem, DatasetFolder } from '@/types';
+
+// Load folder names from localStorage
+const loadFolderNames = (): Record<string, string> => {
+  if (typeof window === 'undefined') return {};
+  const stored = localStorage.getItem('fusion-ai-folder-names');
+  return stored ? JSON.parse(stored) : {};
+};
+
+// Save folder names to localStorage
+const saveFolderNames = (folders: DatasetFolder[]) => {
+  if (typeof window === 'undefined') return;
+  const names: Record<string, string> = {};
+  folders.forEach(folder => {
+    names[folder.id] = folder.name;
+  });
+  localStorage.setItem('fusion-ai-folder-names', JSON.stringify(names));
+};
 
 export default function DatasetsPage() {
   const [files, setFiles] = useState<FileItem[]>([]);
-  const [folders, setFolders] = useState<DatasetFolder[]>(DATASET_FOLDERS);
+  const [folders, setFolders] = useState<DatasetFolder[]>([]);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [selectedFolder, setSelectedFolder] = useState<DatasetFolder | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Initialize folders with persisted names on mount
+  useEffect(() => {
+    const savedNames = loadFolderNames();
+    const initialFolders = DATASET_FOLDERS.map(folder => ({
+      ...folder,
+      name: savedNames[folder.id] || folder.name,
+    }));
+    setFolders(initialFolders);
+  }, []);
 
   // Fetch files from Supabase on mount
   useEffect(() => {
@@ -66,12 +95,35 @@ export default function DatasetsPage() {
   };
 
   const handleFolderRename = async (folderId: string, newName: string) => {
-    setFolders((prevFolders) =>
-      prevFolders.map((folder) =>
-        folder.id === folderId ? { ...folder, name: newName } : folder
-      )
+    const updatedFolders = folders.map((folder) =>
+      folder.id === folderId ? { ...folder, name: newName } : folder
     );
-    // TODO: Persist folder renames to database if needed
+    setFolders(updatedFolders);
+    saveFolderNames(updatedFolders);
+  };
+
+  const handleDeleteFile = async (fileId: string) => {
+    try {
+      // Delete from Supabase
+      const { error } = await supabase
+        .from('files')
+        .delete()
+        .eq('id', fileId);
+
+      if (error) throw error;
+
+      // Update local state
+      setFiles(prevFiles => prevFiles.filter(file => file.id !== fileId));
+      
+      // Refresh to update folder counts
+      fetchFiles();
+    } catch (error: any) {
+      console.error('Error deleting file:', error.message);
+    }
+  };
+
+  const getFilesInFolder = (folderId: string): FileItem[] => {
+    return files.filter(file => file.folderId === folderId);
   };
 
   const handleFolderChange = async (fileId: string, newFolderId: string) => {
@@ -116,6 +168,7 @@ export default function DatasetsPage() {
               key={folder.id}
               folder={folder}
               onRename={handleFolderRename}
+              onClick={() => setSelectedFolder(folder)}
             />
           ))}
         </div>
@@ -143,6 +196,17 @@ export default function DatasetsPage() {
         folders={folders}
         onUploadSuccess={handleUploadSuccess}
       />
+
+      {/* Folder Files Modal */}
+      {selectedFolder && (
+        <FolderFilesModal
+          isOpen={!!selectedFolder}
+          onClose={() => setSelectedFolder(null)}
+          folder={selectedFolder}
+          files={getFilesInFolder(selectedFolder.id)}
+          onDeleteFile={handleDeleteFile}
+        />
+      )}
     </div>
   );
 }

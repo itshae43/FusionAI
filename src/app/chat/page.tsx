@@ -19,7 +19,44 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
   const [availableFiles, setAvailableFiles] = useState<Array<{ id: string; name: string }>>([]);
+  const [currentChatId, setCurrentChatId] = useState<string>('');
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Load chat history from sessionStorage on mount
+  useEffect(() => {
+    const savedHistory = sessionStorage.getItem('fusion-ai-current-chat');
+    const savedChatId = sessionStorage.getItem('fusion-ai-current-chat-id');
+    
+    if (savedHistory) {
+      try {
+        setChatHistory(JSON.parse(savedHistory));
+      } catch (e) {
+        console.error('Failed to load chat history:', e);
+      }
+    }
+    
+    if (savedChatId) {
+      setCurrentChatId(savedChatId);
+    }
+  }, []);
+
+  // Save chat history to sessionStorage whenever it changes
+  useEffect(() => {
+    if (chatHistory.length > 0) {
+      sessionStorage.setItem('fusion-ai-current-chat', JSON.stringify(chatHistory));
+    } else {
+      sessionStorage.removeItem('fusion-ai-current-chat');
+    }
+  }, [chatHistory]);
+
+  // Save current chat ID to sessionStorage
+  useEffect(() => {
+    if (currentChatId) {
+      sessionStorage.setItem('fusion-ai-current-chat-id', currentChatId);
+    } else {
+      sessionStorage.removeItem('fusion-ai-current-chat-id');
+    }
+  }, [currentChatId]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -44,6 +81,40 @@ export default function ChatPage() {
     fetchFiles();
   }, []);
 
+  // Listen for clear/new chat event
+  useEffect(() => {
+    const handleClearChat = () => {
+      setChatHistory([]);
+      setCurrentChatId('');
+      setStreamingMessage('');
+      sessionStorage.removeItem('fusion-ai-current-chat');
+      sessionStorage.removeItem('fusion-ai-current-chat-id');
+    };
+
+    window.addEventListener('fusion-ai-clear-chat', handleClearChat);
+    return () => {
+      window.removeEventListener('fusion-ai-clear-chat', handleClearChat);
+    };
+  }, []);
+
+  // Create chat entry when first message is sent
+  const createChatEntry = (firstMessage: string) => {
+    const chatId = Date.now().toString();
+    const title = firstMessage.length > 50 ? firstMessage.substring(0, 50) + '...' : firstMessage;
+    
+    const event = new CustomEvent('fusion-ai-new-chat', {
+      detail: {
+        id: chatId,
+        title,
+        timestamp: 'Just now',
+        createdAt: Date.now(),
+      }
+    });
+    
+    window.dispatchEvent(event);
+    setCurrentChatId(chatId);
+  };
+
   const fileNameMap = useMemo(() => {
     const map = new Map<string, string>();
     availableFiles.forEach((file) => map.set(file.id, file.name));
@@ -56,6 +127,11 @@ export default function ChatPage() {
     useResearch: boolean,
     useAnalysis: boolean,
   ) => {
+    // Create chat entry on first message
+    if (chatHistory.length === 0 && !currentChatId) {
+      createChatEntry(text);
+    }
+
     // Add user message to chat
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
