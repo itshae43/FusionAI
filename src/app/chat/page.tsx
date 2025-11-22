@@ -228,15 +228,14 @@ export default function ChatPage() {
              <p className="text-sm text-gray-400">Click the search icon to search the web for answers</p>
           </div>
         ) : (
-          <div className="space-y-6 w-full">
+          <div className="space-y-6 w-full flex flex-col items-center">
             {chatHistory.map(msg => (
-              <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} w-full`}>
+              <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} w-full max-w-4xl px-8`}>
                 <div className={`
-                  w-full max-w-3xl px-6 py-4
-                  ${msg.role === 'user' ? '' : ''}
+                  ${msg.role === 'user' ? 'max-w-2xl' : 'w-full'}
                 `}>
                   {msg.analysis ? (
-                    <div className="space-y-3 max-w-4xl">
+                    <div className="space-y-3">
                       <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
                         Data Analysis
                       </p>
@@ -257,13 +256,13 @@ export default function ChatPage() {
                       )}
                     </div>
                   ) : msg.role === 'system' ? (
-                    <div className="prose prose-base max-w-4xl text-gray-800">
+                    <div className="prose prose-base max-w-none text-gray-800">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {msg.text}
                       </ReactMarkdown>
                     </div>
                   ) : (
-                    <div className="bg-gray-100 rounded-2xl px-5 py-3 inline-block max-w-2xl ml-auto">
+                    <div className="bg-gray-100 rounded-2xl px-5 py-3 inline-block">
                       <p className="text-gray-900">{msg.text}</p>
                     </div>
                   )}
@@ -282,9 +281,9 @@ export default function ChatPage() {
             
             {/* Streaming message */}
             {streamingMessage && (
-              <div className="flex justify-start w-full">
-                <div className="w-full max-w-3xl px-6 py-4">
-                  <div className="prose prose-base max-w-4xl text-gray-800">
+              <div className="flex justify-start w-full max-w-4xl px-8">
+                <div className="w-full">
+                  <div className="prose prose-base max-w-none text-gray-800">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {streamingMessage}
                     </ReactMarkdown>
@@ -299,8 +298,8 @@ export default function ChatPage() {
             
             {/* Loading indicator */}
             {isLoading && !streamingMessage && chatHistory[chatHistory.length - 1]?.role !== 'system' && (
-              <div className="flex justify-start w-full">
-                <div className="w-full max-w-3xl px-6 py-4">
+              <div className="flex justify-start w-full max-w-4xl px-8">
+                <div className="w-full">
                   <div className="flex items-center gap-3 text-gray-700 bg-gray-50 rounded-xl px-4 py-3 border border-gray-200">
                     <Loader2 size={18} className="animate-spin text-gray-500" />
                     <span className="font-medium">Thinking...</span>
